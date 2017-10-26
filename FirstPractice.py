@@ -1,4 +1,18 @@
-def epsilon_accountion(word, n, m):
+import unittest
+
+
+class TestUM(unittest.TestCase):
+    def test_my(self):
+        self.assertEqual(test("ab+*", "aaba"), True)
+        self.assertEqual(test("a*b+", "b"), True)
+        self.assertEqual(test("abc..", "abc"), True)
+
+    def tests_from_condition(self):
+        self.assertEqual(test("aab.a. ∗ .aab.+∗.ba.1+.", "aabaabab"), True)
+        self.assertEqual(test("bba.ab.+∗b..∗", "babaabbab"), False)
+
+
+def epsilon_accounting(n, m):
     matrix = [['-'] * m for i in range(n)]
     for i in range(m):
         matrix[0][i] = '+'
@@ -37,6 +51,7 @@ def concat_accounting(first, second, n, m):
                             matrix[second_i + i][j] = '+'
     return matrix
 
+
 def plus_accounting(first, second, n, m):
     for i in range(n):
         for j in range(m):
@@ -44,11 +59,14 @@ def plus_accounting(first, second, n, m):
                 first[i][j] = '+'
     return first
 
-def test(expression, word, n, m):
+
+def test(expression, word):
+    n = len(word) + 1
+    m = len(word)
     a_matrix = pre_accounting("a", word, n, m)
     b_matrix = pre_accounting("b", word, n, m)
     c_matrix = pre_accounting("c", word, n, m)
-    epsilon_matrix = epsilon_accountion(word, n, m)
+    epsilon_matrix = epsilon_accounting(n, m)
     stack = []
     for char in expression:
         if char == '.':
@@ -84,18 +102,21 @@ def test(expression, word, n, m):
     answer = stack.pop()
     if word == '1':
         if answer[0][0] == '+':
-            print('YES')
+            return True
         else:
-            print('NO')
+            return False
         return
     if answer[-1][0] == '+':
-        print('YES')
+        return True
     else:
-        print('NO')
+        return False
 
-#Формат ввода - регулярное выражие и список слов для тестирования
 
-fin = open("input.txt", 'r')
-regular_expression, word = fin.readline().split()
-print(regular_expression, word)
-test(regular_expression, word, len(word) + 1, len(word))
+def read_from_file():
+    fin = open("input.txt", 'r')
+    regular_expression, word = fin.readline().split()
+    print(regular_expression, word)
+    print(test(regular_expression, word))
+
+if __name__ == '__main__':
+    unittest.main()
