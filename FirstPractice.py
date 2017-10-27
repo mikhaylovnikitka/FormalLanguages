@@ -1,15 +1,34 @@
 import unittest
 
 
-class TestUM(unittest.TestCase):
+class BadInputException(Exception):
+    def __init__(self, message_):
+        Exception.__init__(self)
+        self.message = message_
+
+
+class TestForProblem(unittest.TestCase):
+    def test_bad_input(self):
+        with self.assertRaises(BadInputException):
+            test("a+*", "aaba")
+            test("a+*2z", "aaba")
+
     def test_my(self):
         self.assertEqual(test("ab+*", "aaba"), True)
+        self.assertEqual(test("ab+*", "1"), True)
         self.assertEqual(test("a*b+", "b"), True)
         self.assertEqual(test("abc..", "abc"), True)
+        self.assertEqual(test("1111", "1"), True)
+        self.assertEqual(test("ab.bb.a.+ab.c.*.", "cabc"), False)
+        self.assertEqual(test("ab.bb.a.+ab.c.*.", "ababcabc"), True)
+        self.assertEqual(test("ab.bb.a.+ab.c.*.", "bbaabc"), True)
+        self.assertEqual(test("aab.a.*.aab.+*.ba.1+.", "aababbb"), False)
+        self.assertEqual(test("aab.a.*.aab.+*.ba.1+.", "aabaaaaba"), True)
+        self.assertEqual(test("aab.a.*.aab.+*.ba.1+.", "a"), True)
 
     def tests_from_condition(self):
-        self.assertEqual(test("aab.a. ∗ .aab.+∗.ba.1+.", "aabaabab"), True)
-        self.assertEqual(test("bba.ab.+∗b..∗", "babaabbab"), False)
+        self.assertEqual(test("aab.a.*.aab.+*.ba.1+.", "aabaabab"), True)
+        self.assertEqual(test("bba.ab.+*b..*", "babaabbab"), False)
 
 
 def epsilon_accounting(n, m):
@@ -49,6 +68,8 @@ def concat_accounting(first, second, n, m):
                     for second_i in range(n):
                         if second[second_i][i + j] == '+' and second_i + i < n:
                             matrix[second_i + i][j] = '+'
+            if second[0][0] == '+' and first[n-1][0] == '+':
+                matrix[n-1][0] = '+'
     return matrix
 
 
@@ -58,7 +79,6 @@ def plus_accounting(first, second, n, m):
             if second[i][j] == '+':
                 first[i][j] = '+'
     return first
-
 
 def test(expression, word):
     n = len(word) + 1
@@ -70,42 +90,49 @@ def test(expression, word):
     stack = []
     for char in expression:
         if char == '.':
+            if len(stack) < 2:
+                raise BadInputException("Невозможно выполнить операцию .")
             second = stack.pop()
             first = stack.pop()
             to_push = concat_accounting(first, second, n, m)
-            #print('first', first)
-            #print('second', second)
-            #print('dot', to_push)
             stack.append(to_push)
+            continue
         if char == '+':
+            if len(stack) < 2:
+                raise BadInputException("Невозможно выполнить операцию +")
             second = stack.pop()
             first = stack.pop()
             to_push = plus_accounting(first, second, n, m)
-            #print('first', first)
-            #print('second', second)
-            #print('plus', to_push)
             stack.append(to_push)
+            continue
         if char == '*':
+            if len(stack) == 0:
+                raise BadInputException("Невозможно выполнить операцию *")
             first = stack.pop()
-            #print('first', first)
             to_push = star_accounting(first, n, m)
-            #print('star', to_push)
             stack.append(to_push)
+            continue
         if char == 'a':
             stack.append(a_matrix)
+            continue
         if char == 'b':
             stack.append(b_matrix)
+            continue
         if char == 'c':
             stack.append(c_matrix)
+            continue
         if char == '1':
             stack.append(epsilon_matrix)
+            continue
+        raise BadInputException("В выражении присутсвуют недопустимые символы")
+    if len(stack) == 0:
+        raise BadInputException("Невозможно выдать ответ")
     answer = stack.pop()
     if word == '1':
         if answer[0][0] == '+':
             return True
         else:
             return False
-        return
     if answer[-1][0] == '+':
         return True
     else:
@@ -117,6 +144,8 @@ def read_from_file():
     regular_expression, word = fin.readline().split()
     print(regular_expression, word)
     print(test(regular_expression, word))
+    fin.close()
 
 if __name__ == '__main__':
     unittest.main()
+    #read_from_file()
