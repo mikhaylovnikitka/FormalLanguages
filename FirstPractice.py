@@ -1,5 +1,5 @@
 import unittest
-
+import copy
 
 class BadInputException(Exception):
     def __init__(self, message_):
@@ -46,7 +46,8 @@ def pre_accounting(char, word, n, m):
     return matrix
 
 
-def star_accounting(matrix, n, m):
+def star_accounting(current, n, m):
+    matrix = copy.deepcopy(current);
     for i in range(m):
         matrix[0][i] = '+'
     for i in range(1, n):
@@ -74,11 +75,12 @@ def concat_accounting(first, second, n, m):
 
 
 def plus_accounting(first, second, n, m):
+    matrix = copy.deepcopy(first);
     for i in range(n):
         for j in range(m):
             if second[i][j] == '+':
-                first[i][j] = '+'
-    return first
+                matrix[i][j] = '+'
+    return matrix
 
 def test(expression, word):
     n = len(word) + 1
